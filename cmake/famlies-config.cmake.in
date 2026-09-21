@@ -1,0 +1,34 @@
+@PACKAGE_INIT@
+
+# BLIS ships no CMake package config, and BLIS::BLIS is an IMPORTED target, so
+# it could not join famlies's export set: famlies-targets.cmake names it without
+# defining it. The archive famlies links is this project's own build of BLIS,
+# installed privately beside it, so this file re-creates the target against
+# that copy instead of searching for one.
+#
+# If the consumer already defined BLIS::BLIS, that one is used: it carries its
+# own threading, and none of this block runs, including find_dependency().
+if(NOT TARGET BLIS::BLIS)
+    include(CMakeFindDependencyMacro)
+    # BLIS needs pthread whatever its threading model, and a static archive
+    # does not carry one.
+    find_dependency(Threads)
+
+    set_and_check(_famlies_blis_includedir
+        "@PACKAGE_FAMLIES_INSTALL_BLIS_INCLUDEDIR@")
+    set_and_check(_famlies_blis_library
+        "@PACKAGE_FAMLIES_INSTALL_BLIS_LIBDIR@/@FAMLIES_BLIS_LIBRARY_NAME@")
+
+    add_library(BLIS::BLIS STATIC IMPORTED)
+    set_target_properties(BLIS::BLIS PROPERTIES
+        IMPORTED_LOCATION             "${_famlies_blis_library}"
+        INTERFACE_INCLUDE_DIRECTORIES "${_famlies_blis_includedir}"
+        INTERFACE_LINK_LIBRARIES      "Threads::Threads;m")
+
+    unset(_famlies_blis_includedir)
+    unset(_famlies_blis_library)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/famlies-targets.cmake")
+
+check_required_components(famlies)
