@@ -29,6 +29,13 @@ if(NOT TARGET BLIS::BLIS)
     unset(_famlies_blis_library)
 endif()
 
+# MArray is a package of its own. A fetched MArray installs itself beside
+# famlies, which the hint covers; any other must be findable by the consumer.
+if(NOT TARGET MArray::marray)
+    include(CMakeFindDependencyMacro)
+    find_dependency(MArray CONFIG HINTS "${PACKAGE_PREFIX_DIR}")
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/famlies-targets.cmake")
 
 check_required_components(famlies)

@@ -1,17 +1,21 @@
 #ifndef FAMLIES_FAMLIES_HPP
 #define FAMLIES_FAMLIES_HPP
 
-#include <blis.h>
+#include <famlies/core/conj.hpp>
+#include <famlies/core/control.hpp>
+#include <famlies/core/error.hpp>
+#include <famlies/core/operand.hpp>
+#include <famlies/core/precondition.hpp>
+#include <famlies/core/sweep.hpp>
+#include <famlies/core/tags.hpp>
 
-namespace famlies
-{
+#include <famlies/leaf/blis.hpp>
+#include <famlies/leaf/reference.hpp>
 
-/// The version string of the BLIS build famlies is linked against.
-inline const char* blis_version()
-{
-    return bli_info_get_version_str();
-}
+#include <famlies/blas/gemm.hpp>
+#include <famlies/blas/herk.hpp>
+#include <famlies/blas/trsm.hpp>
 
-} // namespace famlies
+#include <famlies/dec/chol.hpp>
 
 #endif // FAMLIES_FAMLIES_HPP

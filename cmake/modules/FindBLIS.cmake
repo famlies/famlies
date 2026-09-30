@@ -3,7 +3,8 @@
 #
 # Provides BLIS (https://github.com/flame/blis) as the imported target
 # BLIS::BLIS. There is no CMake package config to find, so this module
-# downloads and builds BLIS itself.
+# downloads and builds BLIS itself: the release that external/versions.cmake
+# pins as FAMLIES_TRACKED_BLIS_RELEASE_*, which must be included first.
 
 if(CMAKE_SCRIPT_MODE_FILE)
     set(jobs "")
@@ -28,9 +29,6 @@ include(ExternalProject)
 include(FetchContent)
 include(FindPackageHandleStandardArgs)
 
-set(BLIS_RELEASE "2.1")
-set(BLIS_SHA256
-    "901752ec596cd63421ea45a6a06a9f34491cf5ae01cea412ece05f97a2690a96")
 set(BLIS_CONFNAME "auto"
     CACHE STRING "BLIS sub-configuration (confname passed to configure)")
 set(BLIS_CONFIGURE_OPTIONS ""
@@ -64,15 +62,15 @@ set(_blis_make ${CMAKE_COMMAND} "-DMAKE_EXE=${BLIS_MAKE_EXECUTABLE}"
 set(_blis_script -P "${CMAKE_CURRENT_LIST_FILE}")
 
 FetchContent_Declare(blis
-    URL "https://github.com/flame/blis/archive/refs/tags/${BLIS_RELEASE}.tar.gz"
-    URL_HASH SHA256=${BLIS_SHA256}
+    URL "${FAMLIES_TRACKED_BLIS_RELEASE_URL}"
+    URL_HASH SHA256=${FAMLIES_TRACKED_BLIS_RELEASE_SHA256}
     DOWNLOAD_NO_PROGRESS TRUE)
 FetchContent_MakeAvailable(blis)
 
 file(READ "${blis_SOURCE_DIR}/build/version" BLIS_VERSION)
 string(STRIP "${BLIS_VERSION}" BLIS_VERSION)
 
-set(_blis_sha256 "${BLIS_SHA256}")
+set(_blis_sha256 "${FAMLIES_TRACKED_BLIS_RELEASE_SHA256}")
 if(FETCHCONTENT_SOURCE_DIR_BLIS)
     set(_blis_sha256 "")
 endif()
@@ -80,8 +78,8 @@ endif()
 # What the stamp records about the library being built. The hash identifies a
 # downloaded archive; a tree supplied through FETCHCONTENT_SOURCE_DIR_BLIS has
 # its hash blanked above, so only the path distinguishes it.
-set(BLIS_BUILD_DIR "${CMAKE_BINARY_DIR}/_deps/blis-build")
-set(BLIS_STAMP_FILE "${CMAKE_BINARY_DIR}/_deps/blis-ep/blis-provisioning.stamp")
+set(BLIS_BUILD_DIR "${FETCHCONTENT_BASE_DIR}/blis-build")
+set(BLIS_STAMP_FILE "${FETCHCONTENT_BASE_DIR}/blis-ep/blis-provisioning.stamp")
 set(_blis_stamp "version=${BLIS_VERSION}
 sha256=${_blis_sha256}
 source=${blis_SOURCE_DIR}
@@ -105,7 +103,7 @@ if(NOT _blis_stamp_old STREQUAL _blis_stamp)
 endif()
 
 # Real paths: <INSTALL_DIR> is substituted in ExternalProject commands only.
-set(BLIS_PREFIX "${CMAKE_BINARY_DIR}/_deps/blis-install")
+set(BLIS_PREFIX "${FETCHCONTENT_BASE_DIR}/blis-install")
 set(BLIS_INCLUDE_DIR "${BLIS_PREFIX}/include/blis")
 
 set(BLIS_LIBRARY
@@ -125,7 +123,7 @@ if(BLIS_FOUND)
         UPDATE_COMMAND      ""
         # Set explicitly, or the build tree would land under PREFIX beside
         # the logs.
-        PREFIX              "${CMAKE_BINARY_DIR}/_deps/blis-ep"
+        PREFIX              "${FETCHCONTENT_BASE_DIR}/blis-ep"
         BINARY_DIR          "${BLIS_BUILD_DIR}"
         INSTALL_DIR         "${BLIS_PREFIX}"
         # Runs in <BINARY_DIR>; confname has to come last.
